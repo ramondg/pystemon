@@ -14,7 +14,7 @@ To be implemented:
 '''
 
 try:
-    from BeautifulSoup import BeautifulSoup
+    from bs4 import BeautifulSoup
 except:
     exit('ERROR: Cannot import the BeautifulSoup 3 Python library. Are you sure you installed it? (apt-get install python-beautifulsoup')
 import Queue
@@ -402,7 +402,7 @@ class PastiePasteSiteCom(Pastie):
     def fetch_pastie(self):
         validation_form_page, headers = download_url(self.url)
         if validation_form_page:
-            htmlDom = BeautifulSoup(validation_form_page)
+            htmlDom = BeautifulSoup(validation_form_page,"lxml")
             if not htmlDom:
                 return self.pastie_content
             content_left = htmlDom.find(id='full-width')
@@ -430,7 +430,7 @@ class PastieSlexyOrg(Pastie):
     def fetch_pastie(self):
         validation_form_page, headers = download_url(self.url)
         if validation_form_page:
-            htmlDom = BeautifulSoup(validation_form_page)
+            htmlDom = BeautifulSoup(validation_form_page,"lxml")
             if not htmlDom:
                 return self.pastie_content
             a = htmlDom.find('a', {'target': '_blank'})
@@ -475,7 +475,7 @@ class PastieSniptNet(Pastie):
     def fetch_pastie(self):
         downloaded_page, headers = download_url(self.url)
         if downloaded_page:
-            htmlDom = BeautifulSoup(downloaded_page)
+            htmlDom = BeautifulSoup(downloaded_page,"lxml")
             # search for <textarea class="raw">
             textarea = htmlDom.find('textarea', {'class': 'raw'})
             if textarea and textarea.contents:
@@ -704,11 +704,14 @@ def download_url(url, data=None, cookie=None, loop_client=0, loop_server=0):
         # Random Proxy if set in config
         random_proxy = get_random_proxy()
         if random_proxy:
-            proxyh = urllib2.ProxyHandler({'http': random_proxy})
-            opener = urllib2.build_opener(proxyh, NoRedirectHandler())
+            if url.startswith("https"):
+              proxyh = urllib2.ProxyHandler({'https': random_proxy})
+            else:
+              proxyh = urllib2.ProxyHandler({'http': random_proxy})
+            opener = urllib2.build_opener(proxyh)
         # We need to create an opener if it didn't exist yet
         if not opener:
-            opener = urllib2.build_opener(NoRedirectHandler())
+            opener = urllib2.build_opener()
         # Random User-Agent if set in config
         user_agent = get_random_user_agent()
         opener.addheaders = [('Accept-Charset', 'utf-8')]
